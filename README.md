@@ -8,7 +8,7 @@
      Cesar López - 16006861
      Nombre del grupo - LC
 
-   3.Género del juego (RPG, FPS, RTS, MMOG, etc)
+   3.Género del juego (RPG, FPS, RTS, MMOG, etc):
      Shoot'em up
      
    4.Descripción general del juego:
