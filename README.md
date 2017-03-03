@@ -4,8 +4,8 @@
      Variante de GALAGA
    
    2.Integrantes del grupo y el nombre del grupo:
-     Luis Hernández - 10002147
-     Cesar López - 16006861
+     Luis Hernández - 10002147,
+     Cesar López - 16006861 y
      Nombre del grupo - LC
 
    3.Género del juego (RPG, FPS, RTS, MMOG, etc):
