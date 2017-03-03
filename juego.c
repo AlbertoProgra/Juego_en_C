@@ -13,7 +13,7 @@
 #define SCREEN_W 1024
 #define SCREEN_H 640
 
-//Enumera los nombres de variable segun un indice que empieza en 0   
+//Enumera los nombres de variable segun un indice que empiezara en 0   
 enum KEYS{
     UP,   //0
     DOWN, //1
@@ -354,5 +354,5 @@ int main(int argc, char **argv) {
     free(player);
     free(malo);
     free(bg);
-    return 0; //Como costumbre de buen programador
+    return 0; //Como habito de buen programador
 }
