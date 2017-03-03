@@ -12,8 +12,7 @@
      Shoot'em up
      
    4.Descripción general del juego:
-     El jugador controla un avión de papel que debe enfrentarse contra una tropa de Bittys(enemigos) que le atacarán disparando  
-     bombas y actuando como kamikazes.
+     El jugador controla un avión de papel que debe enfrentarse contra una tropa de Bittys(enemigos) que le atacarán disparando bombas y actuando como kamikazes.
      
    5.Detalle de las pantallas:
     
