@@ -3,26 +3,33 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/keyboard.h>
+#include <allegro5/allegro_primitives.h>
 
 #define FPS 30.0
 #define CANTMOV 5
-#define SCREEN_W 1024
-#define SCREEN_H 720
+#define SCREEN_W 1300
+#define SCREEN_H 920
 
 enum KEYS{
     UP,   // 0
     DOWN, // 1
     LEFT, // 2
-    RIGHT // 3
+    RIGHT, // 3
+    SPACE // 4
 };
 
-int teclas[4] = {0, 0, 0, 0};
+int teclas[5] = {0, 0, 0, 0, 0};
 
 typedef struct jugador {
     int x; // posicion x de la nave
     int y; // posicion y de la nave
     ALLEGRO_BITMAP *nave; // imagen a renderizar
 } jugador_t;
+
+typedef struct fondo {
+    ALLEGRO_BITMAP *fondog; // imagen a renderizar
+}fondo_f;
+
 
 typedef struct posBitty {
     int x;
@@ -32,27 +39,37 @@ typedef struct posBitty {
     ALLEGRO_BITMAP *bittys;
 }enemigo;
 
+
+typedef struct bullet{
+    int x;
+    int y;
+    int vel_y;
+} shoot_b;
+
+
 // funcion ayuda que dibuja a nuestra navecita
-void dibujarJugador(jugador_t *jugador, enemigo *posBitty) {
+void dibujarJugador(jugador_t *jugador, enemigo *posBitty, fondo_f *fondo) {
 
     al_clear_to_color(al_map_rgb(0, 0, 0));
+    al_draw_bitmap(fondo->fondog, 0, 0, 0);
     al_draw_bitmap(jugador->nave, jugador->x, jugador->y, 0);
     al_draw_bitmap(posBitty->bittys, posBitty->x, posBitty->y, 0);
-    al_flip_display();
+    
+   al_flip_display();
 }
 
 void primeraEq(enemigo *posBitty){
     if (!posBitty->aux){
-        if (posBitty->x <= (SCREEN_W -50 -4.0)){
-            posBitty->x += 4.0;
+        if (posBitty->x <= (SCREEN_W -85 -20.0)){
+            posBitty->x += 2.0;
         }
         else{
             posBitty->aux = 1;
         }   
     }
     else{
-        if (posBitty->x >= (4.0)){
-            posBitty->x -= 4.0;
+        if (posBitty->x >= (2.0)){
+            posBitty->x -= 2.0;
         }
         else{
             posBitty->aux = 0;
@@ -65,21 +82,21 @@ void segundaEq(enemigo *posBitty){
 }
 
 void moverArriba(jugador_t *jugador) {
-    jugador->y -= 4.0;
+    jugador->y -= 12.0;
 }
 
 void moverAbajo(jugador_t *jugador) {
-    jugador->y += 4;
+    jugador->y += 12.0;
 }
 
 void moverDerecha(jugador_t *jugador) {
-    jugador->x += 4.0;
-    jugador->nave = al_load_bitmap("spacecraft_d.png");
+    jugador->x += 12.0;
+    jugador->nave = al_load_bitmap("nave_d.png");
 }
 
 void moverIzquierda(jugador_t *jugador) {
-    jugador->x -= 4.0;
-    jugador->nave = al_load_bitmap("spacecraft_i.png");
+    jugador->x -= 12.0;
+    jugador->nave = al_load_bitmap("nave_i.png");
 }
 
 int main(int argc, char **argv) {
@@ -90,13 +107,15 @@ int main(int argc, char **argv) {
     // Timer para actulizar eventos
     ALLEGRO_TIMER *timer = NULL;
 
+    al_init_primitives_addon();
+
     // Tratamos de inicializar allegro
     if(!al_init()) {
         fprintf(stderr, "%s\n", "No se pudo inicializar allegro 5");
         return -1;
     }
 
-    // Creamos un nuevo display de 640x480 para empezar
+    // Creamos un nuevo display de 1300x920 para empezar
     display = al_create_display(SCREEN_W, SCREEN_H);
     // Si no se pudo crear el display al_create_display devuelve false (0)
     if(!display) {
@@ -123,11 +142,11 @@ int main(int argc, char **argv) {
     // evitamos que se suspenda la computadora mientras esta el juego abierto
     al_inhibit_screensaver(1);
     // le ponemos un titulo a nuestro display
-    al_set_window_title(display, "Ejercicio 4: Juego en C");
+    al_set_window_title(display, "\t\t\t\t\t\t\t\t\t\t\t\t\t...........::::::::[ G     A     L     A     G     A ]::::::::...........");
     // al principio queremos que tenga fondo negro
     al_clear_to_color(al_map_rgb(0, 0, 0));
     // hacemos que se muestre lo que dibujamos
-    al_flip_display();
+    //al_flip_display();
 
     // creamos el timer
     timer = al_create_timer(1.0 / FPS);
@@ -138,11 +157,40 @@ int main(int argc, char **argv) {
     al_register_event_source(event_queue, al_get_timer_event_source(timer));
 
     // Creamos un jugador (miren como se usa malloc :) )
-    // e inicializamos su posicion (0, 0)
+    // e inicializamos su posicion (620, 740)
     jugador_t *player = (jugador_t *)malloc(sizeof(jugador_t));
-    player->nave = al_load_bitmap("spacecraft.png");
-    player->x = 100;
-    player->y = 100;
+    player->nave = al_load_bitmap("nave.png");
+    player->x = 620;
+    player->y = 740;
+
+    shoot_b *bullet[1];
+    for (int i = 0; i < 1; i++)
+    {
+    bullet[i] = (shoot_b *)malloc(sizeof(shoot_b));
+    bullet[i]->vel_y = 10;
+    bullet[i]->y = 0;
+    bullet[i]->x = 0;
+    }
+
+    void avion_dispara(shoot_b *bullet[], jugador_t *jugador){
+        for (int i = 0; i <1; i++)
+        {
+            bullet[i]->y = jugador->y;
+            bullet[i]->x = jugador->x;
+        }
+    }
+
+    void activa_disparo(shoot_b *bullet[]){
+        for (int i = 0; i < 1; i++)
+        {
+            al_draw_filled_circle(bullet[i]->x, bullet[i]->y, 6, al_map_rgb(0, 0, 0));
+            bullet[i]->y -= bullet[i]->vel_y;
+        }
+        al_flip_display();
+    }
+
+    fondo_f *bg = (fondo_f *)malloc(sizeof(fondo_f));
+    bg->fondog = al_load_bitmap("fondo.bmp");
 
     // si la imagen de la nave no se pudo cargar
     if(!player->nave) {
@@ -154,7 +202,7 @@ int main(int argc, char **argv) {
     }
 
     enemigo *malo = (enemigo *)malloc(sizeof(enemigo));
-    malo->bittys = al_load_bitmap("spacecraft.png");
+    malo->bittys = al_load_bitmap("bitty.png");
     malo->x = 0;
     malo->y = 0;
     malo->aux = 0;
@@ -169,7 +217,7 @@ int main(int argc, char **argv) {
     }
 
     // dibujemos al jugador por primera vez
-    dibujarJugador(player, malo);
+    dibujarJugador(player, malo, bg);
 
     // srand a un numero que tire el reloj
     srand(time(NULL));
@@ -201,11 +249,11 @@ int main(int argc, char **argv) {
                     break;
                 case ALLEGRO_KEY_LEFT:
                     teclas[LEFT] = 0;
-                    player->nave = al_load_bitmap("spacecraft.png");
+                    player->nave = al_load_bitmap("nave.png");
                     break;
                 case ALLEGRO_KEY_RIGHT:
                     teclas[RIGHT] = 0;
-                    player->nave = al_load_bitmap("spacecraft.png");
+                    player->nave = al_load_bitmap("nave.png");
                     break;
             }
         } else if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
@@ -222,27 +270,35 @@ int main(int argc, char **argv) {
                 case ALLEGRO_KEY_RIGHT:
                     teclas[RIGHT] = 1;
                     break;
+                case ALLEGRO_KEY_SPACE:
+                    teclas[SPACE] = 1;
+                    avion_dispara(bullet, player);
+                    break;
             }
         } else if(ev.type == ALLEGRO_EVENT_TIMER) {
             if(teclas[UP]){
-                if (player->y >= 4.0){
+                if (player->y >= 12.0){
                     moverArriba(player);
                 }
             }
             else if(teclas[DOWN]){
-                if (player->y <= (SCREEN_H -56 -4.0)){
+                if (player->y <= (SCREEN_H -129 -4.0)){
                     moverAbajo(player);
                 }
             }
             else if(teclas[LEFT]){
-                if (player->x >= 4.0){
+                if (player->x >= 12.0){
                     moverIzquierda(player);
                 }
             }
             else if(teclas[RIGHT]){
-                if (player->x <= (SCREEN_W -50 -4.0)){
+                if (player->x <= (SCREEN_W -100 -4.0)){
                     moverDerecha(player);
                 }
+            }
+            else if (teclas[SPACE])
+            {
+                activa_disparo(bullet);
             }
         }
 
@@ -250,7 +306,7 @@ int main(int argc, char **argv) {
 
         
         // dibujamos al jugador
-        dibujarJugador(player, malo);
+        dibujarJugador(player, malo, bg);
     }
 
     // siemple hay que limpiar memoria

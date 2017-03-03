@@ -20,9 +20,6 @@ editor: editor.c
 juego: juego.c
 	$(CC) juego.c -o juego $(ALLEGRO_CFLAGS)
 
-fs: fs.c
-	$(CC) fs.c -o fs $(ALLEGRO_CFLAGS)
-
 .PHONY: clean
 clean:
 	$(RM) program eccentric bit_ops bit_count editor juego
