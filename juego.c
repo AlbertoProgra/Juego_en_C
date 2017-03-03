@@ -4,6 +4,7 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/keyboard.h>
 #include <allegro5/allegro_primitives.h>
+#include <stdbool.h>
 
 //Constantes
 #define FPS 30.0
@@ -11,7 +12,7 @@
 #define SCREEN_W 1024
 #define SCREEN_H 640
 
-//Manejo de Teclas----------------------------------------------------
+
 enum KEYS{
     UP,   // 0
     DOWN, // 1
@@ -21,13 +22,13 @@ enum KEYS{
 };
 
 int teclas[5] = {0, 0, 0, 0, 0};
-//--------------------------------------------------------------------
+
 
 typedef struct fondo {
     ALLEGRO_BITMAP *fondog; // imagen a renderizar
-}fondo_f;
+} fondo_f;
 
-//Struct para la nave del jugador
+//Struct para la nava del jugador
 typedef struct jugador {
     int x; // posicion x de la nave
     int y; // posicion y de la nave
@@ -47,23 +48,30 @@ typedef struct bullet{
     int x;
     int y;
     int vel_y;
+    bool used;
 } shoot_b;
 
 
 // funcion ayuda que dibuja a nuestra navecita
-void dibujarJugador(jugador_t *jugador, enemigo_s *bitty, shoot_b *bullet, fondo_f *fondo) {
+void dibujarJugador(jugador_t *jugador, enemigo_s *bitty, shoot_b *bullet[], fondo_f *fondo) {
 
     al_clear_to_color(al_map_rgb(0, 0, 0));
     al_draw_bitmap(fondo->fondog, 0, 0, 0);
     al_draw_bitmap(jugador->nave, jugador->x, jugador->y, 0);
     al_draw_bitmap(bitty->bittys, bitty->x, bitty->y, 0);
-    al_draw_filled_circle(bullet->x, bullet->y, 6, al_map_rgb(0, 0, 0));
+    int i;
+    for(i=0; i<5; i++){
+        if(bullet[i]->used){
+            al_draw_filled_circle(bullet[i]->x, bullet[i]->y, 6, al_map_rgb(0, 0, 0));
+        }
+    }
+    
    al_flip_display();
 }
 
 void primeraEq(enemigo_s *bitty){
     if (!bitty->aux){
-        if (bitty->x <= (SCREEN_W -85 -20.0)){
+        if (bitty->x <= (SCREEN_W - 52 - 4.0)){
             bitty->x += 2.0;
         }
         else{
@@ -102,18 +110,22 @@ void moverIzquierda(jugador_t *jugador) {
     jugador->nave = al_load_bitmap("nave_i.png");
 }
 
-void avion_dispara(shoot_b *bullet, jugador_t *jugador){
-        
-            bullet->y = jugador->y;
-            bullet->x = jugador->x+20;
-        
-    }
+void creaDisparo(shoot_b *bullet, jugador_t *jugador){
+    bullet->y = jugador->y;
+    bullet->x = jugador->x + 20.5;
+    bullet->used = true;
+}
 
-    void activa_disparo(shoot_b *bullet){
-     
-            bullet->y -= bullet->vel_y;
-        
+void moverDisparo(shoot_b *bullet){
+    if(bullet->y < 0){
+        bullet->y = 0;
+        bullet->x = 0;
+        bullet->used = false;
     }
+    else {
+        bullet->y -= bullet->vel_y;
+    }
+}
 
 int main(int argc, char **argv) {
     // Nuestra pantalla
@@ -176,16 +188,19 @@ int main(int argc, char **argv) {
     // e inicializamos su posicion (620, 740)
     jugador_t *player = (jugador_t *)malloc(sizeof(jugador_t));
     player->nave = al_load_bitmap("nave.png");
-    player->x = 512;
-    player->y = 575;
+    player->x = SCREEN_W/2 + 20.5;
+    player->y = SCREEN_H - 61;
 
-    shoot_b *bullet = (shoot_b *)malloc(sizeof(shoot_b));
-    bullet->vel_y = 10;
-    bullet->y = 1000;
-    bullet->x = 1000;
-    
-
-    
+    shoot_b *bullet[5];
+    int cont_b;
+    for (cont_b = 0; cont_b < 5; cont_b ++){
+        bullet[cont_b] = (shoot_b *)malloc(sizeof(shoot_b));
+        bullet[cont_b]->vel_y = 10;
+        bullet[cont_b]->y = 0;
+        bullet[cont_b]->x = 0;
+        bullet[cont_b]->used = 0;
+    }
+    cont_b = 0;
 
     fondo_f *bg = (fondo_f *)malloc(sizeof(fondo_f));
     bg->fondog = al_load_bitmap("fondo.jpg");
@@ -253,6 +268,9 @@ int main(int argc, char **argv) {
                     teclas[RIGHT] = 0;
                     player->nave = al_load_bitmap("nave.png");
                     break;
+                case ALLEGRO_KEY_SPACE:
+                    teclas[SPACE] = 0;
+                    break;
             }
         } else if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
             switch(ev.keyboard.keycode) {
@@ -270,7 +288,10 @@ int main(int argc, char **argv) {
                     break;
                 case ALLEGRO_KEY_SPACE:
                     teclas[SPACE] = 1;
-                    avion_dispara(bullet, player);
+                    cont_b ++;
+                    if (cont_b <= 5){
+                        creaDisparo(bullet[cont_b-1], player);
+                    }
                     break;
             }
         } else if(ev.type == ALLEGRO_EVENT_TIMER) {
@@ -280,7 +301,7 @@ int main(int argc, char **argv) {
                 }
             }
             else if(teclas[DOWN]){
-                if (player->y <= (SCREEN_H -129 -4.0)){
+                if (player->y <= (SCREEN_H -61 -4.0)){
                     moverAbajo(player);
                 }
             }
@@ -290,16 +311,26 @@ int main(int argc, char **argv) {
                 }
             }
             else if(teclas[RIGHT]){
-                if (player->x <= (SCREEN_W -100 -4.0)){
+                if (player->x <= (SCREEN_W -51)){
                     moverDerecha(player);
                 }
             }
-            
-            if (teclas[SPACE])
-            {
-                activa_disparo(bullet);
+            int i;
+            int cont_i = 0;
+            for (i = 0; i < 5; i ++){
+                if(bullet[i]->used) {
+                    moverDisparo(bullet[i]);
+                }
+                else {
+                    cont_i++;
+                }
+            }
+            if(cont_i == 5){
+                cont_b = 0;
             }
 
+            i = 0;
+            cont_i = 0;
             primeraEq(malo);
         }
 
