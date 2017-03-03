@@ -27,7 +27,7 @@ typedef struct fondo {
     ALLEGRO_BITMAP *fondog; // imagen a renderizar
 }fondo_f;
 
-//Struct para la nava del jugador
+//Struct para la nave del jugador
 typedef struct jugador {
     int x; // posicion x de la nave
     int y; // posicion y de la nave
@@ -105,7 +105,7 @@ void moverIzquierda(jugador_t *jugador) {
 void avion_dispara(shoot_b *bullet, jugador_t *jugador){
         
             bullet->y = jugador->y;
-            bullet->x = jugador->x;
+            bullet->x = jugador->x+20;
         
     }
 
@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
     // evitamos que se suspenda la computadora mientras esta el juego abierto
     al_inhibit_screensaver(1);
     // le ponemos un titulo a nuestro display
-    al_set_window_title(display, "\t\t\t\t\t\t\t\t\t\t\t\t\t...........::::::::[ G     A     L     A     G     A ]::::::::...........");
+    al_set_window_title(display, "\t\t\t\t\t\t\t\t\t...........::::::::[ G     A     L     A     G     A ]::::::::...........");
     // al principio queremos que tenga fondo negro
     al_clear_to_color(al_map_rgb(0, 0, 0));
     // hacemos que se muestre lo que dibujamos
@@ -176,19 +176,19 @@ int main(int argc, char **argv) {
     // e inicializamos su posicion (620, 740)
     jugador_t *player = (jugador_t *)malloc(sizeof(jugador_t));
     player->nave = al_load_bitmap("nave.png");
-    player->x = 620;
-    player->y = 740;
+    player->x = 512;
+    player->y = 575;
 
     shoot_b *bullet = (shoot_b *)malloc(sizeof(shoot_b));
     bullet->vel_y = 10;
-    bullet->y = 0;
-    bullet->x = 0;
+    bullet->y = 1000;
+    bullet->x = 1000;
     
 
     
 
     fondo_f *bg = (fondo_f *)malloc(sizeof(fondo_f));
-    bg->fondog = al_load_bitmap("fondo.bmp");
+    bg->fondog = al_load_bitmap("fondo.jpg");
 
     // si la imagen de la nave no se pudo cargar
     if(!player->nave) {
