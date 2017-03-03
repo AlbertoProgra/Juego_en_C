@@ -5,11 +5,13 @@
 #include <allegro5/keyboard.h>
 #include <allegro5/allegro_primitives.h>
 
+//Constantes
 #define FPS 30.0
 #define CANTMOV 5
-#define SCREEN_W 1300
-#define SCREEN_H 920
+#define SCREEN_W 1024
+#define SCREEN_H 640
 
+//Manejo de Teclas----------------------------------------------------
 enum KEYS{
     UP,   // 0
     DOWN, // 1
@@ -19,26 +21,27 @@ enum KEYS{
 };
 
 int teclas[5] = {0, 0, 0, 0, 0};
+//--------------------------------------------------------------------
 
+typedef struct fondo {
+    ALLEGRO_BITMAP *fondog; // imagen a renderizar
+}fondo_f;
+
+//Struct para la nava del jugador
 typedef struct jugador {
     int x; // posicion x de la nave
     int y; // posicion y de la nave
     ALLEGRO_BITMAP *nave; // imagen a renderizar
 } jugador_t;
 
-typedef struct fondo {
-    ALLEGRO_BITMAP *fondog; // imagen a renderizar
-}fondo_f;
-
-
-typedef struct posBitty {
+//Struct para los enemigos
+typedef struct bitty {
     int x;
     int y;
     int vida;
     int aux;
     ALLEGRO_BITMAP *bittys;
-}enemigo;
-
+} enemigo_s;
 
 typedef struct bullet{
     int x;
@@ -48,36 +51,36 @@ typedef struct bullet{
 
 
 // funcion ayuda que dibuja a nuestra navecita
-void dibujarJugador(jugador_t *jugador, enemigo *posBitty, fondo_f *fondo) {
+void dibujarJugador(jugador_t *jugador, enemigo_s *bitty, shoot_b *bullet, fondo_f *fondo) {
 
     al_clear_to_color(al_map_rgb(0, 0, 0));
     al_draw_bitmap(fondo->fondog, 0, 0, 0);
     al_draw_bitmap(jugador->nave, jugador->x, jugador->y, 0);
-    al_draw_bitmap(posBitty->bittys, posBitty->x, posBitty->y, 0);
-    
+    al_draw_bitmap(bitty->bittys, bitty->x, bitty->y, 0);
+    al_draw_filled_circle(bullet->x, bullet->y, 6, al_map_rgb(0, 0, 0));
    al_flip_display();
 }
 
-void primeraEq(enemigo *posBitty){
-    if (!posBitty->aux){
-        if (posBitty->x <= (SCREEN_W -85 -20.0)){
-            posBitty->x += 2.0;
+void primeraEq(enemigo_s *bitty){
+    if (!bitty->aux){
+        if (bitty->x <= (SCREEN_W -85 -20.0)){
+            bitty->x += 2.0;
         }
         else{
-            posBitty->aux = 1;
+            bitty->aux = 1;
         }   
     }
     else{
-        if (posBitty->x >= (2.0)){
-            posBitty->x -= 2.0;
+        if (bitty->x >= (2.0)){
+            bitty->x -= 2.0;
         }
         else{
-            posBitty->aux = 0;
+            bitty->aux = 0;
         }  
     }
 }
 
-void segundaEq(enemigo *posBitty){
+void segundaEq(enemigo_s *bitty){
 
 }
 
@@ -98,6 +101,19 @@ void moverIzquierda(jugador_t *jugador) {
     jugador->x -= 12.0;
     jugador->nave = al_load_bitmap("nave_i.png");
 }
+
+void avion_dispara(shoot_b *bullet, jugador_t *jugador){
+        
+            bullet->y = jugador->y;
+            bullet->x = jugador->x;
+        
+    }
+
+    void activa_disparo(shoot_b *bullet){
+     
+            bullet->y -= bullet->vel_y;
+        
+    }
 
 int main(int argc, char **argv) {
     // Nuestra pantalla
@@ -163,31 +179,13 @@ int main(int argc, char **argv) {
     player->x = 620;
     player->y = 740;
 
-    shoot_b *bullet[1];
-    for (int i = 0; i < 1; i++)
-    {
-    bullet[i] = (shoot_b *)malloc(sizeof(shoot_b));
-    bullet[i]->vel_y = 10;
-    bullet[i]->y = 0;
-    bullet[i]->x = 0;
-    }
+    shoot_b *bullet = (shoot_b *)malloc(sizeof(shoot_b));
+    bullet->vel_y = 10;
+    bullet->y = 0;
+    bullet->x = 0;
+    
 
-    void avion_dispara(shoot_b *bullet[], jugador_t *jugador){
-        for (int i = 0; i <1; i++)
-        {
-            bullet[i]->y = jugador->y;
-            bullet[i]->x = jugador->x;
-        }
-    }
-
-    void activa_disparo(shoot_b *bullet[]){
-        for (int i = 0; i < 1; i++)
-        {
-            al_draw_filled_circle(bullet[i]->x, bullet[i]->y, 6, al_map_rgb(0, 0, 0));
-            bullet[i]->y -= bullet[i]->vel_y;
-        }
-        al_flip_display();
-    }
+    
 
     fondo_f *bg = (fondo_f *)malloc(sizeof(fondo_f));
     bg->fondog = al_load_bitmap("fondo.bmp");
@@ -201,7 +199,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    enemigo *malo = (enemigo *)malloc(sizeof(enemigo));
+    enemigo_s *malo = (enemigo_s *)malloc(sizeof(enemigo_s));
     malo->bittys = al_load_bitmap("bitty.png");
     malo->x = 0;
     malo->y = 0;
@@ -217,7 +215,7 @@ int main(int argc, char **argv) {
     }
 
     // dibujemos al jugador por primera vez
-    dibujarJugador(player, malo, bg);
+    dibujarJugador(player, malo, bullet, bg);
 
     // srand a un numero que tire el reloj
     srand(time(NULL));
@@ -296,17 +294,20 @@ int main(int argc, char **argv) {
                     moverDerecha(player);
                 }
             }
-            else if (teclas[SPACE])
+            
+            if (teclas[SPACE])
             {
                 activa_disparo(bullet);
             }
+
+            primeraEq(malo);
         }
 
-        primeraEq(malo);
+        
 
         
         // dibujamos al jugador
-        dibujarJugador(player, malo, bg);
+        dibujarJugador(player, malo, bullet, bg);
     }
 
     // siemple hay que limpiar memoria
