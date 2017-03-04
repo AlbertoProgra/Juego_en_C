@@ -8,10 +8,13 @@
 #include <stdbool.h>
 
 //Constantes del programa
-#define FPS 30.0
-#define CANTMOV 5
-#define SCREEN_W 1024
-#define SCREEN_H 640
+#define FPS 30.0 
+#define SCREEN_W 1024 //Ancho de la pantalla
+#define SCREEN_H 640 //Alto de la pantalla
+#define VELX_NAVE 10 //Velocidad de la nave en X
+#define VELY_NAVE 7.5 //Velocidad de la nave en Y
+#define VEL_BITTYS 13 //Velocidad de los enemigos
+#define CANT_ENEMI 9 //Cantidad de enemigos
 
 //Enumera los nombres de variable segun un indice que empiezara en 0   
 enum KEYS{
@@ -39,19 +42,22 @@ typedef struct jugador {
 
 //Struct para el enemigo
 typedef struct bitty {
-    int x;
-    int y;
-    int vida;
-    int aux;
-    ALLEGRO_BITMAP *bittys;
+    int x; //Posicion en x
+    int y; //Posicion en y
+    int vida; //Puntos de vida [Segun el tipo]
+    int tipo; //Tipo de enemigo
+    int aux1; //auxiliar de movimiento 1
+    int aux2; //auxiliar de movimiento 2
+    int func; //Numero de funcion para el movimiento
+    ALLEGRO_BITMAP *bittys; //Imagen [Segun el tipo]
 } enemigo_s;
 
 //Struct para los disparos
 typedef struct bullet{
-    int x;
-    int y;
-    int vel_y;
-    bool used;
+    int x; //Posicion en x
+    int y; //Posicion en y
+    int vel_y; //Velocidad de los disparos
+    bool used; //Valida si esta en uso o no
 } shoot_b;
 
 //Funcion que ayuda a dibujar el juego
@@ -60,68 +66,150 @@ void dibujarJuego(jugador_t *jugador, enemigo_s *bitty[], shoot_b *bullet[], fon
     al_draw_bitmap(fondo->fondog, 0, 0, 0);
     al_draw_bitmap(jugador->nave, jugador->x, jugador->y, 0);
     int i;
-    for(i=0; i<3; i++){
+    for(i=0; i<CANT_ENEMI; i++){
         if(bitty[i]->vida){
             al_draw_bitmap(bitty[i]->bittys, bitty[i]->x, bitty[i]->y, 0);
         }
     }
-    
-    i=0;
     for(i=0; i<5; i++){
         if(bullet[i]->used){
             al_draw_filled_circle(bullet[i]->x, bullet[i]->y, 4, al_map_rgb(0, 0, 0));
+            al_draw_filled_circle(SCREEN_W - 5 -(10*i), SCREEN_H -5, 4, al_map_rgb(255, 0, 0));
         }
-    }   
+        else{
+            al_draw_filled_circle(SCREEN_W - 5 -(10*i), SCREEN_H -5, 4, al_map_rgb(, 0, 0));
+        }
+    }
    al_flip_display();
 }
 
 //Funcion_1_enemigo: controla el movimiento del enemigo
-void primeraEq(enemigo_s *bitty[]){
-    int i;
-    for(i=0; i<3; i++){
-        if (!bitty[i]->aux){
-            if (bitty[i]->x <= (SCREEN_W - 52 - 4.0)){
-                bitty[i]->x += 2.0;
-            }
-            else{
-                bitty[i]->aux = 1;
-            }   
+void primeraEq(enemigo_s *bitty){
+
+        switch(bitty->aux1){
+            case 0:
+                if (bitty->x <= (SCREEN_W - 52 - 4.0)){
+                    bitty->x += VEL_BITTYS;
+                }
+                else{
+                    if(bitty->y == 52*5){
+                        bitty->x = 0;
+                        bitty->y = 0;
+                        bitty->aux1 = 0;
+                        bitty->aux2 = 0;
+                        bitty->func = 2;
+                    }
+                    else{
+                        bitty->aux1 = 2;
+                        bitty->aux2 = 0;
+                    }
+                } 
+                break;
+            case 1:
+                if (bitty->x >= (2.0)){
+                    bitty->x -= VEL_BITTYS;
+                }
+                else{
+                    if(bitty->y == 52*5){
+                        bitty->x = 979;
+                        bitty->y = -52;
+                        bitty->aux1 = 0;
+                        bitty->aux2 = 0;
+                        bitty->func = 2;
+                    }
+                    else{
+                        bitty->aux1 = 2;
+                        bitty->aux2 = 1;
+                    }
+                }
+                break;
+            case 2:
+                bitty->y += VEL_BITTYS;
+                if (bitty->y % 52 == 0){
+                    if(bitty->aux2){
+                        bitty->aux1 = 0;    
+                    }
+                    else{
+                        bitty->aux1 = 1;
+                    }
+                }
+                break;
         }
-        else{
-            if (bitty[i]->x >= (2.0)){
-                bitty[i]->x -= 2.0;
-            }
-            else{
-                bitty[i]->aux = 0;
-            }  
-        }
-    }
 }
 
 //Funcion_2_enemigo: controla el movimiento del enemigo_2
 void segundaEq(enemigo_s *bitty){
-    /*Escriba su codigo aqui*/
+
+        switch(bitty->aux1){
+            case 0:
+                if (bitty->y <= (SCREEN_H/2 - 52 - 4.0)){
+                    bitty->y += VEL_BITTYS;
+                }
+                else{
+                    if(bitty->x == 52*20){
+                        bitty->x = 0;
+                        bitty->y = -52;
+                        bitty->aux1 = 0;
+                        bitty->aux2 = 0;
+                        bitty->func = 1;
+                    }
+                    else{
+                        bitty->aux1 = 2;
+                        bitty->aux2 = 0;
+                    }
+                } 
+                break;
+            case 1:
+                if (bitty->y > 0){
+                    bitty->y -= VEL_BITTYS;
+                }
+                else{
+                    if(bitty->x == 0){
+                        bitty->x = 0;
+                        bitty->y = 0;
+                        bitty->aux1 = 0;
+                        bitty->aux2 = 0;
+                        bitty->func = 2;
+                    }
+                    else{
+                        bitty->aux1 = 2;
+                        bitty->aux2 = 1;
+                    }
+                }
+                break;
+            case 2:
+                bitty->x += VEL_BITTYS;
+                if (bitty->x % 104 == 0){
+                    if(bitty->aux2){
+                        bitty->aux1 = 0;    
+                    }
+                    else{
+                        bitty->aux1 = 1;
+                    }
+                }
+                break;
+        }
 }
 
 //Funcion_1_jugador: modifica el movimiento del avion en el eje -y
 void moverArriba(jugador_t *jugador) {
-    jugador->y -= 12.0;
+    jugador->y -= VELY_NAVE;
 }
 
 //Funcion_2_jugador: modifica el movimiento del avion en el eje +y
 void moverAbajo(jugador_t *jugador) {
-    jugador->y += 12.0;
+    jugador->y += VELY_NAVE;
 }
 
 //Funcion_3_jugador: modifica el movimiento del avion en el eje +x
 void moverDerecha(jugador_t *jugador) {
-    jugador->x += 12.0;
+    jugador->x += VELX_NAVE;
     jugador->nave = al_load_bitmap("nave_d.png");
 }
 
 //Funcion_3_jugador: modifica el movimiento del avion en el eje -x
 void moverIzquierda(jugador_t *jugador) {
-    jugador->x -= 12.0;
+    jugador->x -= VELX_NAVE;
     jugador->nave = al_load_bitmap("nave_i.png");
 }
 
@@ -141,22 +229,21 @@ void moverDisparo(shoot_b *bullet, enemigo_s *bitty[]){
     }
     else {
         int i;
-        for(i=0; i<3;i++){
+        for(i=0; i<CANT_ENEMI;i++){
             if(bitty[i]->vida){
-                if(bullet->y+2 <= bitty[i]->y + 52 && (bullet->x >= bitty[i]->x && bullet->x <= (bitty[i]->x + 52))){
-                    bitty[i]->vida -= 1;
-                    bullet->y = 0;
-                    bullet->x = 0;
-                    bullet->used = false;
-                    if(bitty[i]->vida == 1){
-                        bitty[i]->bittys = al_load_bitmap("bitty1.png");
-                    } 
-
+                if((bullet->y+2 <= bitty[i]->y + 52) && (bullet->y >= bitty[i]->y)){
+                    if((bullet->x+2 >= bitty[i]->x) && (bullet->x <= bitty[i]->x + 52)){
+                        bitty[i]->vida -= 1;
+                        bullet->y = 0;
+                        bullet->x = 0;
+                        bullet->used = false;
+                        if(bitty[i]->vida == 1){
+                            bitty[i]->bittys = al_load_bitmap("bitty1.png");
+                        } 
+                    }
                 }
             }
         }
-        
-
         bullet->y -= bullet->vel_y;
     }
 }
@@ -246,15 +333,17 @@ int main(int argc, char **argv) {
     }
 
     //Creamos un enemigo e inicializamos su posicion en (0,0)
-    enemigo_s *malo[3];
+    enemigo_s *malo[CANT_ENEMI];
     int cont_e;
-    for (cont_e = 0; cont_e < 3; cont_e++){
+    for (cont_e = 0; cont_e < CANT_ENEMI; cont_e++){
         malo[cont_e] = (enemigo_s *)malloc(sizeof(enemigo_s));
         malo[cont_e]->bittys = al_load_bitmap("bitty.png");
-        malo[cont_e]->x = cont_e*4;
-        malo[cont_e]->y = cont_e*54;
-        malo[cont_e]->aux = 0;
+        malo[cont_e]->x = cont_e*104;
+        malo[cont_e]->y = -52;
+        malo[cont_e]->aux1 = 0;
+        malo[cont_e]->aux2 = 0;
         malo[cont_e]->vida = 2;
+        malo[cont_e]->func = 1;
         //Si la imagen de la nave no se pudo cargar
         if(!malo[cont_e]->bittys) {
             fprintf(stderr, "%s\n", "No se pudo crear un enemigo");
@@ -368,10 +457,19 @@ int main(int argc, char **argv) {
             if(cont_i == 5){
                 cont_b = 0;
             }
+            
+            for(i=0; i<CANT_ENEMI; i++){
+                if(malo[i]->func == 1){
+                    primeraEq(malo[i]);
+                }
+                else if(malo[i]->func == 2){
+                    segundaEq(malo[i]);
+                }
+            }
+            
 
             i = 0;
             cont_i = 0;
-            primeraEq(malo);
         }
   
         //Recargamos el juego (del backBuffer al frontBuffer)
