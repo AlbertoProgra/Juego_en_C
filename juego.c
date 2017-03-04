@@ -55,12 +55,18 @@ typedef struct bullet{
 } shoot_b;
 
 //Funcion que ayuda a dibujar el juego
-void dibujarJugador(jugador_t *jugador, enemigo_s *bitty, shoot_b *bullet[], fondo_f *fondo) {
+void dibujarJuego(jugador_t *jugador, enemigo_s *bitty[], shoot_b *bullet[], fondo_f *fondo) {
     al_clear_to_color(al_map_rgb(0, 0, 0));
     al_draw_bitmap(fondo->fondog, 0, 0, 0);
     al_draw_bitmap(jugador->nave, jugador->x, jugador->y, 0);
-    al_draw_bitmap(bitty->bittys, bitty->x, bitty->y, 0);
     int i;
+    for(i=0; i<3; i++){
+        if(bitty[i]->vida){
+            al_draw_bitmap(bitty[i]->bittys, bitty[i]->x, bitty[i]->y, 0);
+        }
+    }
+    
+    i=0;
     for(i=0; i<5; i++){
         if(bullet[i]->used){
             al_draw_filled_circle(bullet[i]->x, bullet[i]->y, 4, al_map_rgb(0, 0, 0));
@@ -70,22 +76,25 @@ void dibujarJugador(jugador_t *jugador, enemigo_s *bitty, shoot_b *bullet[], fon
 }
 
 //Funcion_1_enemigo: controla el movimiento del enemigo
-void primeraEq(enemigo_s *bitty){
-    if (!bitty->aux){
-        if (bitty->x <= (SCREEN_W - 52 - 4.0)){
-            bitty->x += 2.0;
+void primeraEq(enemigo_s *bitty[]){
+    int i;
+    for(i=0; i<3; i++){
+        if (!bitty[i]->aux){
+            if (bitty[i]->x <= (SCREEN_W - 52 - 4.0)){
+                bitty[i]->x += 2.0;
+            }
+            else{
+                bitty[i]->aux = 1;
+            }   
         }
         else{
-            bitty->aux = 1;
-        }   
-    }
-    else{
-        if (bitty->x >= (2.0)){
-            bitty->x -= 2.0;
+            if (bitty[i]->x >= (2.0)){
+                bitty[i]->x -= 2.0;
+            }
+            else{
+                bitty[i]->aux = 0;
+            }  
         }
-        else{
-            bitty->aux = 0;
-        }  
     }
 }
 
@@ -124,13 +133,30 @@ void creaDisparo(shoot_b *bullet, jugador_t *jugador){
 }
 
 //Funcion_2_disparo: modifica el movimiento del disparo en el eje -y
-void moverDisparo(shoot_b *bullet){
+void moverDisparo(shoot_b *bullet, enemigo_s *bitty[]){
     if(bullet->y < 0){
         bullet->y = 0;
         bullet->x = 0;
         bullet->used = false;
     }
     else {
+        int i;
+        for(i=0; i<3;i++){
+            if(bitty[i]->vida){
+                if(bullet->y+2 <= bitty[i]->y + 52 && (bullet->x >= bitty[i]->x && bullet->x <= (bitty[i]->x + 52))){
+                    bitty[i]->vida -= 1;
+                    bullet->y = 0;
+                    bullet->x = 0;
+                    bullet->used = false;
+                    if(bitty[i]->vida == 1){
+                        bitty[i]->bittys = al_load_bitmap("bitty1.png");
+                    } 
+
+                }
+            }
+        }
+        
+
         bullet->y -= bullet->vel_y;
     }
 }
@@ -179,7 +205,7 @@ int main(int argc, char **argv) {
     //Evitamos que se suspenda la computadora mientras esta el juego abierto
     al_inhibit_screensaver(1);
     //Le ponemos un titulo a nuestro display
-    al_set_window_title(display, "\t\t\t\t\t\t\t\t\t...........::::::::[ G     A     L     A     G     A ]::::::::...........");
+    al_set_window_title(display, "\t\t\t\t\t\t\t\t...........::::::::[  PAPER -> SH O O  T   E    R  ]::::::::...........");
     //Creamos el timer
     timer = al_create_timer(1.0 / FPS);
 
@@ -220,23 +246,29 @@ int main(int argc, char **argv) {
     }
 
     //Creamos un enemigo e inicializamos su posicion en (0,0)
-    enemigo_s *malo = (enemigo_s *)malloc(sizeof(enemigo_s));
-    malo->bittys = al_load_bitmap("bitty.png");
-    malo->x = 0;
-    malo->y = 0;
-    malo->aux = 0;
-
-    //Si la imagen de la nave no se pudo cargar
-    if(!malo->bittys) {
-        fprintf(stderr, "%s\n", "No se pudo crear un enemigo");
-        al_destroy_display(display);
-        al_destroy_event_queue(event_queue);
-        al_destroy_timer(timer);
-        return -1;
+    enemigo_s *malo[3];
+    int cont_e;
+    for (cont_e = 0; cont_e < 3; cont_e++){
+        malo[cont_e] = (enemigo_s *)malloc(sizeof(enemigo_s));
+        malo[cont_e]->bittys = al_load_bitmap("bitty.png");
+        malo[cont_e]->x = cont_e*4;
+        malo[cont_e]->y = cont_e*54;
+        malo[cont_e]->aux = 0;
+        malo[cont_e]->vida = 2;
+        //Si la imagen de la nave no se pudo cargar
+        if(!malo[cont_e]->bittys) {
+            fprintf(stderr, "%s\n", "No se pudo crear un enemigo");
+            al_destroy_display(display);
+            al_destroy_event_queue(event_queue);
+            al_destroy_timer(timer);
+            return -1;
+        }
     }
 
+    
+
     //Dibujemos el juego por primera vez
-    dibujarJugador(player, malo, bullet, bg);
+    dibujarJuego(player, malo, bullet, bg);
 
     //srand a un numero que tire el reloj
     srand(time(NULL));
@@ -327,7 +359,7 @@ int main(int argc, char **argv) {
             int cont_i = 0;
             for (i = 0; i < 5; i ++){
                 if(bullet[i]->used) {
-                    moverDisparo(bullet[i]);
+                    moverDisparo(bullet[i], malo);
                 }
                 else {
                     cont_i++;
@@ -343,7 +375,7 @@ int main(int argc, char **argv) {
         }
   
         //Recargamos el juego (del backBuffer al frontBuffer)
-        dibujarJugador(player, malo, bullet, bg);
+        dibujarJuego(player, malo, bullet, bg);
     }
 
     //Se Limpia memoria (solo cuando el ciclo while termina)
@@ -352,7 +384,7 @@ int main(int argc, char **argv) {
     al_destroy_bitmap(player->nave);
     al_destroy_timer(timer);
     free(player);
-    free(malo);
+    //free(malo);
     free(bg);
     return 0; //Como habito de buen programador
 }
