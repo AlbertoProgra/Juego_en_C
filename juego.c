@@ -30,6 +30,7 @@ int teclas[5] = {0, 0, 0, 0, 0};
 
 //Struct para el fondo del juego
 typedef struct fondo {
+    int op;
     ALLEGRO_BITMAP *fondog; //Imagen a renderizar
 } fondo_f;
 
@@ -60,24 +61,63 @@ typedef struct bullet{
     bool used; //Valida si esta en uso o no
 } shoot_b;
 
+//Funcion que dibuja el menu
+void dibujarMenu(fondo_f *fondo){
+    al_clear_to_color(al_map_rgb(0, 0, 0));
+    al_draw_bitmap(fondo->fondog, 0, 0, 0);
+    al_flip_display();
+}
+
+void moverMenu(fondo_f *fondo, int m){
+    if(m == 2 && fondo->op < 3){
+        fondo->op += 1;
+    }
+    else if(m == 1 && fondo->op > 1) {
+        fondo->op -= 1;
+    }
+    switch(fondo->op){
+        case 1:
+            fondo->fondog = al_load_bitmap("fondo_menu_nuevo_juego.jpg");
+            break;
+        case 2:
+            fondo->fondog = al_load_bitmap("fondo_menu_como_se_juega.jpg");
+            break;
+        case 3:
+            fondo->fondog = al_load_bitmap("fondo_menu_salir.jpg");
+            break;
+        case 4:
+            fondo->fondog = al_load_bitmap("fondo_instrucciones.jpg");
+            break;
+    }
+}
+
 //Funcion que ayuda a dibujar el juego
-void dibujarJuego(jugador_t *jugador, enemigo_s *bitty[], shoot_b *bullet[], fondo_f *fondo) {
+void dibujarJuego(jugador_t *jugador, enemigo_s *bitty[], shoot_b *bullet[], fondo_f *fondo, enemigo_s *bossy) {
+    int i;
+
     al_clear_to_color(al_map_rgb(0, 0, 0));
     al_draw_bitmap(fondo->fondog, 0, 0, 0);
     al_draw_bitmap(jugador->nave, jugador->x, jugador->y, 0);
-    int i;
-    for(i=0; i<CANT_ENEMI; i++){
-        if(bitty[i]->vida){
-            al_draw_bitmap(bitty[i]->bittys, bitty[i]->x, bitty[i]->y, 0);
+
+    if(bossy->vida != 0){
+        al_draw_bitmap(bossy->bittys, bossy->x, bossy->y, 0);
+        //Dibujar balas del boss
+    }
+    else{
+        for(i=0; i<CANT_ENEMI; i++){
+            if(bitty[i]->vida){
+                al_draw_bitmap(bitty[i]->bittys, bitty[i]->x, bitty[i]->y, 0);
+            }
         }
     }
+    
     for(i=0; i<5; i++){
         if(bullet[i]->used){
             al_draw_filled_circle(bullet[i]->x, bullet[i]->y, 4, al_map_rgb(0, 0, 0));
             al_draw_filled_circle(SCREEN_W - 5 -(10*i), SCREEN_H -5, 4, al_map_rgb(255, 0, 0));
         }
         else{
-            al_draw_filled_circle(SCREEN_W - 5 -(10*i), SCREEN_H -5, 4, al_map_rgb(, 0, 0));
+            al_draw_filled_circle(SCREEN_W - 5 -(10*i), SCREEN_H -5, 4, al_map_rgb(0, 0, 0));
         }
     }
    al_flip_display();
@@ -189,6 +229,43 @@ void segundaEq(enemigo_s *bitty){
                 }
                 break;
         }
+}
+
+void entradaBoss(enemigo_s *bossy){
+    if(bossy->y < 5){
+        bossy->y += 1;
+    }
+    else{
+        bossy->func = 2;
+        bossy->aux1 = 1;
+    }
+}
+
+void battleBoss(enemigo_s *bossy, jugador_t *jugador){
+    if(jugador->x > bossy->x){
+        bossy->x += 5;
+    }else if(jugador->x < bossy->x){
+        bossy->x -= 5;
+    }
+    if(bossy->aux1){
+        if(jugador->y > bossy->y){
+            bossy->y += 5;
+            if(bossy->y == SCREEN_H/2 - 60){
+                bossy->aux1 = 0;
+            }
+        }else if(jugador->y < bossy->y){
+            bossy->y -= 5;
+        }  
+    }
+    else{
+        if(bossy->y > 5){
+            bossy->y -= 5;
+        }
+        else{
+            bossy->aux1 = 1;
+        }
+    }
+      
 }
 
 //Funcion_1_jugador: modifica el movimiento del avion en el eje -y
@@ -321,7 +398,8 @@ int main(int argc, char **argv) {
 
     //Creamos un fondo por default se inicializa su posicion en (0,0)
     fondo_f *bg = (fondo_f *)malloc(sizeof(fondo_f));
-    bg->fondog = al_load_bitmap("fondo.jpg");
+    bg->fondog = al_load_bitmap("fondo_menu_nuevo_juego.jpg");
+    bg->op = 1;
 
     //Si la imagen de la nave no se pudo cargar
     if(!player->nave) {
@@ -332,7 +410,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    //Creamos un enemigo e inicializamos su posicion en (0,0)
+    //Creamos un arreglo de enemigos
     enemigo_s *malo[CANT_ENEMI];
     int cont_e;
     for (cont_e = 0; cont_e < CANT_ENEMI; cont_e++){
@@ -354,10 +432,14 @@ int main(int argc, char **argv) {
         }
     }
 
-    
-
-    //Dibujemos el juego por primera vez
-    dibujarJuego(player, malo, bullet, bg);
+    //Creamos al Boss
+    enemigo_s *boss = (enemigo_s *)malloc(sizeof(enemigo_s));
+    boss->bittys = al_load_bitmap("bitto.png");
+    boss->x = SCREEN_W/2 - 94.5;
+    boss->y = -157;
+    boss->vida = 0;
+    boss->func = 1;
+    boss->aux1 = 0;
 
     //srand a un numero que tire el reloj
     srand(time(NULL));
@@ -371,6 +453,73 @@ int main(int argc, char **argv) {
     //Una variable que recibe eventos (?)
     ALLEGRO_EVENT ev;
 
+    //Dibujamos el Menu
+    int menu = 0;
+
+    while(!menu){
+        al_wait_for_event(event_queue, &ev);
+        if(ev.type == ALLEGRO_EVENT_KEY_UP){
+            switch(ev.keyboard.keycode) {
+                case ALLEGRO_KEY_UP:
+                    teclas[UP] = 0;
+                    break;
+                case ALLEGRO_KEY_DOWN:
+                    teclas[DOWN] = 0;
+                    break;
+                case ALLEGRO_KEY_SPACE:
+                    teclas[SPACE] = 0;
+                    break;
+            }
+        } else if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+            switch(ev.keyboard.keycode) {
+                case ALLEGRO_KEY_UP:
+                    if(bg->op != 4){
+                        teclas[UP] = 1;
+                        moverMenu(bg, 1);
+                    }
+                    break;
+                case ALLEGRO_KEY_DOWN:
+                    if(bg->op != 4){
+                        teclas[DOWN] = 1;
+                        moverMenu(bg, 2);
+                    }
+                    break;
+                case ALLEGRO_KEY_SPACE:
+                    
+                    switch(bg->op){
+                        case 1:
+                            menu = 1;
+                            break;
+                        case 2:
+                            bg->op = 4;
+                            moverMenu(bg, 3);
+                            break;
+                        case 3:
+                            menu = 1;
+                            terminar = 1;
+                            break;
+                        case 4:
+                            bg->op = 1;
+                            moverMenu(bg, 0);
+                            break;
+                    }
+                    break;
+            }
+            //Si el evento es Timer
+        } else if(ev.type == ALLEGRO_EVENT_TIMER) {
+            
+        }
+        dibujarMenu(bg);
+    }
+
+    if(!terminar){
+       bg->fondog = al_load_bitmap("fondo.jpg");
+        //Dibujemos el juego por primera vez
+        dibujarJuego(player, malo, bullet, bg, boss);
+    }
+
+    //Bandera para el Boss
+        bool go_Boss = false; 
     
     //Loop del juego
     while(!terminar) {
@@ -446,6 +595,7 @@ int main(int argc, char **argv) {
             }
             int i;
             int cont_i = 0;
+            
             for (i = 0; i < 5; i ++){
                 if(bullet[i]->used) {
                     moverDisparo(bullet[i], malo);
@@ -458,22 +608,44 @@ int main(int argc, char **argv) {
                 cont_b = 0;
             }
             
-            for(i=0; i<CANT_ENEMI; i++){
-                if(malo[i]->func == 1){
-                    primeraEq(malo[i]);
+            int cont_muertos = 0;
+
+            if(!go_Boss){
+               for(i=0; i<CANT_ENEMI; i++){
+                    if(malo[i]->func == 1){
+                        primeraEq(malo[i]);
+                    }
+                    else if(malo[i]->func == 2){
+                        segundaEq(malo[i]);
+                    }
+
+                    if(malo[i]->vida == 0){
+                        cont_muertos++;
+                    }
                 }
-                else if(malo[i]->func == 2){
-                    segundaEq(malo[i]);
+                if (cont_muertos == 9){
+                    go_Boss = true;
+                    boss->vida = 50;
                 }
             }
-            
+            else{
+                if(boss->func == 1){
+                    entradaBoss(boss);
+                }
+                else {
+                   battleBoss(boss, player); 
+                }
+            }
 
+            
             i = 0;
             cont_i = 0;
+
+
         }
   
         //Recargamos el juego (del backBuffer al frontBuffer)
-        dibujarJuego(player, malo, bullet, bg);
+        dibujarJuego(player, malo, bullet, bg, boss);
     }
 
     //Se Limpia memoria (solo cuando el ciclo while termina)
