@@ -3,7 +3,7 @@
      https://vimeo.com/207084687 
    
    1.Título del juego: 
-     Variante de GALAGA
+      PAPER->SHOOTER
    
    2.Integrantes del grupo y el nombre del grupo:
      Luis Hernández - 10002147,
@@ -17,10 +17,10 @@
      El jugador controla un avión de papel que debe enfrentarse contra una tropa de Bittys(enemigo) y un enemigo final; Bitto(THE FINAL BOSS) que le atacara disparando bombas.
      
    5.Detalle de las pantallas:
-      El juego se desarrolla en una unica pantalla de una hoja de papel de cuaderno
+      El juego se desarrolla en una sola pantalla de papel de un cuaderno
     
    6.Descripción del gameplay:
-      En el menu te mueves con las teclas UP y Down, puedes seleccionar y tambien disparar con la barra espaciadora te sales del juego con la tecla ESC. Cuentas con un contador de bombas, ten cuidado tu cargador solo almacena 5 bombas y deberas de esperar a que se recargue 
+      En el menu te mueves con las teclas UP y Down, puedes seleccionar, disparar con la barra espaciadora y te sales del juego con la tecla ESC. Cuentas con un contador de bombas pero cuidado tu cargador solo almacena 5 de ellas y deberas de esperar a que se recargue nuevamente 
     
    7.¿Qué diferencia a su juego de los demás?
        La mecanica del juego y la interfaz grafica lo hacen muy divertido
