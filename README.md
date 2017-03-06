@@ -14,13 +14,13 @@
      Shoot'em up
      
    4.Descripción general del juego:
-     El jugador controla un avión de papel que debe enfrentarse contra una tropa de Bittys(enemigos) que le atacarán disparando bombas y un enimo final; Bitto(THE FINAL BOSS).
+     El jugador controla un avión de papel que debe enfrentarse contra una tropa de Bittys(enemigo) y un enemigo final; Bitto(THE FINAL BOSS) que le atacara disparando bombas.
      
    5.Detalle de las pantallas:
       El juego se desarrolla en una unica pantalla de una hoja de papel de cuaderno
     
    6.Descripción del gameplay:
-      En el menu te mueves con las teclas UP y Down, puedes seleccionar y tambien disparar con la barra espaciadora te sales del juego con la tecla ESC
+      En el menu te mueves con las teclas UP y Down, puedes seleccionar y tambien disparar con la barra espaciadora te sales del juego con la tecla ESC. Cuentas con un contador de bombas, ten cuidado tu cargador solo almacena 5 bombas y deberas de esperar a que se recargue 
     
    7.¿Qué diferencia a su juego de los demás?
        La mecanica del juego y la interfaz grafica lo hacen muy divertido
