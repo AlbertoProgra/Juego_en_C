@@ -99,10 +99,14 @@ void dibujarJuego(jugador_t *jugador, enemigo_s *bitty[], shoot_b *bullet[], fon
     int i;
 
     al_clear_to_color(al_map_rgb(0, 0, 0));
-    al_draw_bitmap(fondo->fondog, 0, 0, 0);
-    al_draw_bitmap(jugador->nave, jugador->x, jugador->y, 0);
 
-    if(bossy->vida != 0){
+    al_draw_bitmap(fondo->fondog, 0, 0, 0);
+
+    if(jugador->vida > 0){
+        al_draw_bitmap(jugador->nave, jugador->x, jugador->y, 0);
+    }
+
+    if(bossy->vida > 0){
         al_draw_bitmap(bossy->bittys, bossy->x, bossy->y, 0);
         //Dibujar balas del boss
     }
@@ -113,22 +117,27 @@ void dibujarJuego(jugador_t *jugador, enemigo_s *bitty[], shoot_b *bullet[], fon
             }
         }
     }
-    
-    for(i=0; i<5; i++){
-        if(bullet[i]->used){
-            al_draw_filled_circle(bullet[i]->x, bullet[i]->y, 4, al_map_rgb(0, 0, 255));
-            al_draw_filled_circle(SCREEN_W - 5 -(10*i), SCREEN_H -5, 4, al_map_rgb(0, 0, 255));
-        }
-        else{
-            al_draw_filled_circle(SCREEN_W - 5 -(10*i), SCREEN_H -5, 4, al_map_rgb(0, 0, 0));
+
+    if(jugador->vida > 0){
+        for(i=0; i<5; i++){
+            if(bullet[i]->used){
+                al_draw_filled_circle(bullet[i]->x, bullet[i]->y, 4, al_map_rgb(0, 0, 255));
+                al_draw_filled_circle(SCREEN_W - 5 -(10*i), SCREEN_H -5, 4, al_map_rgb(0, 0, 255));
+            }
+            else{
+                al_draw_filled_circle(SCREEN_W - 5 -(10*i), SCREEN_H -5, 4, al_map_rgb(0, 0, 0));
+            }
         }
     }
 
-    for(i=0; i<10; i++){
-        if(bullet_boss[i]->used){
-            al_draw_filled_circle(bullet_boss[i]->x, bullet_boss[i]->y, 4, al_map_rgb(255, 0, 0));
+    if(bossy->vida > 0){
+        for(i=0; i<10; i++){
+            if(bullet_boss[i]->used){
+                al_draw_filled_circle(bullet_boss[i]->x, bullet_boss[i]->y, 4, al_map_rgb(255, 0, 0));
+            }
         }
     }
+
 
    al_flip_display();
 }
@@ -305,7 +314,7 @@ void moverDisparo(shoot_b *bullet, enemigo_s *bitty[]){
         bullet->y -= bullet->vel_y;
     }
 }
-void moverDisparo2(shoot_b *bullet, enemigo_s *bossy, shoot_b *bullet_boss[]){
+void moverDisparo2(shoot_b *bullet, enemigo_s *bossy, shoot_b *bullet_boss[], fondo_f *fondo){
 	if(bullet->y < 0){
         bullet->y = 0;
         bullet->x = 0;
@@ -332,7 +341,7 @@ void moverDisparo2(shoot_b *bullet, enemigo_s *bossy, shoot_b *bullet_boss[]){
                 	}
                 }
                 else if(bossy->vida == 0){
-                	//YOU WON
+                	fondo->fondog = al_load_bitmap("fondo_youwin.jpg");
                 }
             }
         }
@@ -343,7 +352,7 @@ void moverDisparo2(shoot_b *bullet, enemigo_s *bossy, shoot_b *bullet_boss[]){
     }
 }
 
-void moverDisparoBoss(shoot_b *bullet, jugador_t *jugador){
+void moverDisparoBoss(shoot_b *bullet, jugador_t *jugador, fondo_f *fondo){
 	if(bullet->y > SCREEN_H){
 		bullet->y = 0;
 		bullet->x = 0;
@@ -358,7 +367,7 @@ void moverDisparoBoss(shoot_b *bullet, jugador_t *jugador){
 				bullet->x=0;
 				bullet->used = false;
 				if(jugador->vida == 0){
-					//GAME OVER
+					fondo->fondog = al_load_bitmap("fondo_gameover.jpg");
 				}
 
 			}
@@ -757,7 +766,7 @@ void battleBoss(enemigo_s *bossy, jugador_t *jugador){
                 		moverDisparo(bullet[i], malo);
                 	}
                 	else{
-                		moverDisparo2(bullet[i], boss, bullet_boss);
+                		moverDisparo2(bullet[i], boss, bullet_boss, bg);
                 	}
                 }
                 else {
@@ -800,7 +809,9 @@ void battleBoss(enemigo_s *bossy, jugador_t *jugador){
                    if(boss->aux2 % 32 == 0){
                    		cont_b2 ++;
 	                    if (cont_b2 <= 10){
-	                        creaDisparoBoss(bullet_boss[cont_b2-1], boss);
+                            if(boss->vida > 0){
+                                creaDisparoBoss(bullet_boss[cont_b2-1], boss);
+                            }
 	                    }
                    }
                    
@@ -815,7 +826,7 @@ void battleBoss(enemigo_s *bossy, jugador_t *jugador){
                 cont_i = 0;
                 for (i = 0; i < 10; i ++){
 	                if(bullet_boss[i]->used) {
-	                	moverDisparoBoss(bullet_boss[i], player);
+	                	moverDisparoBoss(bullet_boss[i], player, bg);
 	                }
 	                else {
 	                    cont_i++;
