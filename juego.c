@@ -89,7 +89,7 @@ void moverMenu(fondo_f *fondo, int m){
             fondo->fondog = al_load_bitmap("fondo_menu_salir.jpg");
             break;
         case 4:
-            fondo->fondog = al_load_bitmap("fondo_instrucciones.jpg");
+            fondo->fondog = al_load_bitmap("fondo_instrucciones_presionado.jpg");
             break;
     }
 }
