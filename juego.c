@@ -5,6 +5,8 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/keyboard.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 #include <stdbool.h>
 
 //Constantes del programa
@@ -231,42 +233,7 @@ void segundaEq(enemigo_s *bitty){
         }
 }
 
-void entradaBoss(enemigo_s *bossy){
-    if(bossy->y < 5){
-        bossy->y += 1;
-    }
-    else{
-        bossy->func = 2;
-        bossy->aux1 = 1;
-    }
-}
 
-void battleBoss(enemigo_s *bossy, jugador_t *jugador){
-    if(jugador->x > bossy->x){
-        bossy->x += 5;
-    }else if(jugador->x < bossy->x){
-        bossy->x -= 5;
-    }
-    if(bossy->aux1){
-        if(jugador->y > bossy->y){
-            bossy->y += 5;
-            if(bossy->y == SCREEN_H/2 - 60){
-                bossy->aux1 = 0;
-            }
-        }else if(jugador->y < bossy->y){
-            bossy->y -= 5;
-        }  
-    }
-    else{
-        if(bossy->y > 5){
-            bossy->y -= 5;
-        }
-        else{
-            bossy->aux1 = 1;
-        }
-    }
-      
-}
 
 //Funcion_1_jugador: modifica el movimiento del avion en el eje -y
 void moverArriba(jugador_t *jugador) {
@@ -329,6 +296,11 @@ void moverDisparo(shoot_b *bullet, enemigo_s *bitty[]){
 int main(int argc, char **argv) {
     //Nuestra pantalla
     ALLEGRO_DISPLAY *display = NULL;
+
+
+    ALLEGRO_SAMPLE *sample = NULL;
+    ALLEGRO_SAMPLE *sample2 = NULL;
+
     //Con esto podemos manejar eventos
     ALLEGRO_EVENT_QUEUE *event_queue = NULL;
     //Timer para actulizar eventos
@@ -339,6 +311,30 @@ int main(int argc, char **argv) {
     //Tratamos de inicializar allegro
     if(!al_init()) {
         fprintf(stderr, "%s\n", "No se pudo inicializar allegro 5");
+        return -1;
+    }
+
+    if(!al_install_audio()) {
+        fprintf(stderr, "%s\n", "No se pudo inicializar el audio");
+        return -1;
+    }
+
+    if(!al_init_acodec_addon()) {
+        fprintf(stderr, "%s\n", "No se pudo inicializar audio codecs");
+        return -1;
+    }
+
+    if(!al_reserve_samples(1)) {
+        fprintf(stderr, "%s\n", "No se pudo reservar la muestra de audio");
+        return -1;
+    }
+
+    sample = al_load_sample( "KubbiEmber.wav" );
+    sample2 = al_load_sample( "Chop_Suey_8_Bit.wav" );
+    
+
+    if(!sample) {
+        fprintf(stderr, "%s\n", "No se pudo cargar el clip de audio");
         return -1;
     }
 
@@ -453,11 +449,55 @@ int main(int argc, char **argv) {
     //Una variable que recibe eventos (?)
     ALLEGRO_EVENT ev;
 
+    void entradaBoss(enemigo_s *bossy){
+    sample = NULL;
+    al_play_sample(sample2, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
+    if(bossy->y < 5){
+
+        bossy->y += 1;
+    }
+    else{
+        bossy->func = 2;
+        bossy->aux1 = 1;
+    }
+}
+
+void battleBoss(enemigo_s *bossy, jugador_t *jugador){
+    if(jugador->x > bossy->x){
+        bossy->x += 5;
+    }else if(jugador->x < bossy->x){
+        bossy->x -= 5;
+    }
+    if(bossy->aux1){
+        if(jugador->y > bossy->y){
+            bossy->y += 5;
+            if(bossy->y == SCREEN_H/2 - 60){
+                bossy->aux1 = 0;
+            }
+        }else if(jugador->y < bossy->y){
+            bossy->y -= 5;
+        }  
+    }
+    else{
+        if(bossy->y > 5){
+            bossy->y -= 5;
+        }
+        else{
+            bossy->aux1 = 1;
+        }
+    }
+      
+}
+
+
+
+
     //Dibujamos el Menu
     int menu = 0;
 
     while(!menu){
         al_wait_for_event(event_queue, &ev);
+        al_play_sample(sample, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
         if(ev.type == ALLEGRO_EVENT_KEY_UP){
             switch(ev.keyboard.keycode) {
                 case ALLEGRO_KEY_UP:
@@ -509,10 +549,14 @@ int main(int argc, char **argv) {
         } else if(ev.type == ALLEGRO_EVENT_TIMER) {
             
         }
+        
         dibujarMenu(bg);
     }
 
     if(!terminar){
+        al_destroy_sample(sample);
+        sample = al_load_sample( "KubbiEmber.wav" );
+        al_play_sample(sample, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
        bg->fondog = al_load_bitmap("fondo.jpg");
         //Dibujemos el juego por primera vez
         dibujarJuego(player, malo, bullet, bg, boss);
@@ -611,6 +655,7 @@ int main(int argc, char **argv) {
             int cont_muertos = 0;
 
             if(!go_Boss){
+                
                for(i=0; i<CANT_ENEMI; i++){
                     if(malo[i]->func == 1){
                         primeraEq(malo[i]);
@@ -629,7 +674,9 @@ int main(int argc, char **argv) {
                 }
             }
             else{
+                al_destroy_sample(sample);
                 if(boss->func == 1){
+
                     entradaBoss(boss);
                 }
                 else {
@@ -653,8 +700,8 @@ int main(int argc, char **argv) {
     al_destroy_event_queue(event_queue);
     al_destroy_bitmap(player->nave);
     al_destroy_timer(timer);
+    al_destroy_sample(sample);
     free(player);
-    //free(malo);
     free(bg);
     return 0; //Como habito de buen programador
 }
