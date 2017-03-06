@@ -300,6 +300,7 @@ int main(int argc, char **argv) {
 
     ALLEGRO_SAMPLE *sample = NULL;
     ALLEGRO_SAMPLE *sample2 = NULL;
+    ALLEGRO_SAMPLE *sample3 = NULL;
 
     //Con esto podemos manejar eventos
     ALLEGRO_EVENT_QUEUE *event_queue = NULL;
@@ -331,6 +332,7 @@ int main(int argc, char **argv) {
 
     sample = al_load_sample( "KubbiEmber.wav" );
     sample2 = al_load_sample( "Chop_Suey_8_Bit.wav" );
+    sample3 = al_load_sample( "KubbiEmber2.wav" );
     
 
     if(!sample) {
@@ -555,8 +557,8 @@ void battleBoss(enemigo_s *bossy, jugador_t *jugador){
 
     if(!terminar){
         al_destroy_sample(sample);
-        sample = al_load_sample( "KubbiEmber.wav" );
-        al_play_sample(sample, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
+        sample = NULL;
+        al_play_sample(sample3, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
        bg->fondog = al_load_bitmap("fondo.jpg");
         //Dibujemos el juego por primera vez
         dibujarJuego(player, malo, bullet, bg, boss);
