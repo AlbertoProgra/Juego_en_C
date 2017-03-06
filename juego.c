@@ -452,7 +452,7 @@ int main(int argc, char **argv) {
     ALLEGRO_EVENT ev;
 
     void entradaBoss(enemigo_s *bossy){
-    sample = NULL;
+    sample3 = NULL;
     al_play_sample(sample2, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
     if(bossy->y < 5){
 
@@ -676,7 +676,7 @@ void battleBoss(enemigo_s *bossy, jugador_t *jugador){
                 }
             }
             else{
-                al_destroy_sample(sample);
+                al_destroy_sample(sample3);
                 if(boss->func == 1){
 
                     entradaBoss(boss);
