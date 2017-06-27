@@ -1,6 +1,6 @@
-# Proyecto-1-C
+## Proyecto-1-C
    0.Link del video que muestra nuestro juego
-     https://vimeo.com/207084687 
+     [https://vimeo.com/207084687]
    
    1.Título del juego: 
       PAPER->SHOOTER
