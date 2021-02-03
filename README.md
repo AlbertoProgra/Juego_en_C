@@ -1,4 +1,4 @@
-## Proyecto-1-C
+## Juego programado en C PAPER->SHOOTER
    0.Link del video que muestra nuestro juego
      [https://vimeo.com/207084687]
    
